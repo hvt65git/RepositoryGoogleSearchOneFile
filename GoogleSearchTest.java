@@ -47,15 +47,15 @@ enum BrowserType implements Browser{
 }
 
 class WebDriverFactory{
-	
 	//use ThreadLocal to associate WebDriver object with a thread 
-	private static ThreadLocal<WebDriver> tl = new ThreadLocal<WebDriver>();
-
+	private static ThreadLocal<WebDriver> tl;
+	
 	public WebDriverFactory(){
+		tl = new ThreadLocal<WebDriver>();
 		System.out.println("WebDriverFactory constructor called...");
 	}
 
-	public static WebDriver initWebDriver(BrowserType bt) throws IllegalAccessException{
+	public WebDriver initWebDriver(BrowserType bt) throws IllegalAccessException{
 		WebDriver driver = null;
 		switch(bt){
 		case CHROME:
@@ -73,15 +73,15 @@ class WebDriverFactory{
 		return getWebDriver();
 	}
 
-	private static void setWebDriver(WebDriver driver){
+	private void setWebDriver(WebDriver driver){
 		tl.set(driver);
 	}
 
-	public static WebDriver getWebDriver(){
+	public WebDriver getWebDriver(){
 		return tl.get();
 	}
 
-	protected static void releaseWebDriver(){
+	protected void releaseWebDriver(){
 		getWebDriver().quit();
 		tl.remove();
 	}
@@ -122,7 +122,7 @@ public class GoogleSearchTest extends SeleniumBase {
 	}
 
 	//the test
-	public void executeGoogleSearchTest(final String term, BrowserType bt){
+	public void executeGoogleSearchTest(final String term){
 		
 		try{
 			//find the search txt element - note WebElement is an interface
@@ -152,7 +152,7 @@ public class GoogleSearchTest extends SeleniumBase {
 
 	@Test(dataProvider="testData")
 	public void test1(String term){
-		executeGoogleSearchTest(term,BrowserType.CHROME);
+		executeGoogleSearchTest(term);
 	}
 
 	@DataProvider(parallel = true)
@@ -172,52 +172,66 @@ public class GoogleSearchTest extends SeleniumBase {
 //  C:\Selenium\SeleniumWebDriverPracticalGuide\_ _HT_Test_Automation_Framework_Final_ _\src\singlefileframework\testng-customsuite.xml
 //
 //[TestRunner] Starting executor for test Default test with time out:2147483647 milliseconds.
-//Starting ChromeDriver 2.25.426923 (0390b88869384d6eb0d5d09729679f934aab9eed) on port 18141
+//Starting ChromeDriver 2.25.426923 (0390b88869384d6eb0d5d09729679f934aab9eed) on port 19273
 //Only local connections are allowed.
-//Starting ChromeDriver 2.25.426923 (0390b88869384d6eb0d5d09729679f934aab9eed) on port 41858
+//Starting ChromeDriver 2.25.426923 (0390b88869384d6eb0d5d09729679f934aab9eed) on port 24040
 //Only local connections are allowed.
-//Starting ChromeDriver 2.25.426923 (0390b88869384d6eb0d5d09729679f934aab9eed) on port 13099
+//Starting ChromeDriver 2.25.426923 (0390b88869384d6eb0d5d09729679f934aab9eed) on port 34456
 //Only local connections are allowed.
-//Starting ChromeDriver 2.25.426923 (0390b88869384d6eb0d5d09729679f934aab9eed) on port 27283
+//Starting ChromeDriver 2.25.426923 (0390b88869384d6eb0d5d09729679f934aab9eed) on port 4064
 //Only local connections are allowed.
-//Starting ChromeDriver 2.25.426923 (0390b88869384d6eb0d5d09729679f934aab9eed) on port 31680
+//Starting ChromeDriver 2.25.426923 (0390b88869384d6eb0d5d09729679f934aab9eed) on port 46759
 //Only local connections are allowed.
-//Starting ChromeDriver 2.25.426923 (0390b88869384d6eb0d5d09729679f934aab9eed) on port 38725
+//Starting ChromeDriver 2.25.426923 (0390b88869384d6eb0d5d09729679f934aab9eed) on port 12142
 //Only local connections are allowed.
-//Starting ChromeDriver 2.25.426923 (0390b88869384d6eb0d5d09729679f934aab9eed) on port 2442
+//Starting ChromeDriver 2.25.426923 (0390b88869384d6eb0d5d09729679f934aab9eed) on port 21436
 //Only local connections are allowed.
-//Starting ChromeDriver 2.25.426923 (0390b88869384d6eb0d5d09729679f934aab9eed) on port 25892
+//Starting ChromeDriver 2.25.426923 (0390b88869384d6eb0d5d09729679f934aab9eed) on port 15171
 //Only local connections are allowed.
-//Starting ChromeDriver 2.25.426923 (0390b88869384d6eb0d5d09729679f934aab9eed) on port 3876
+//Starting ChromeDriver 2.25.426923 (0390b88869384d6eb0d5d09729679f934aab9eed) on port 48373
 //Only local connections are allowed.
-//Starting ChromeDriver 2.25.426923 (0390b88869384d6eb0d5d09729679f934aab9eed) on port 38454
+//Starting ChromeDriver 2.25.426923 (0390b88869384d6eb0d5d09729679f934aab9eed) on port 3066
 //Only local connections are allowed.
-//PASSED: test1("apple")
-//PASSED: test1("frogs")
-//PASSED: test1("seahawks")
-//PASSED: test1("cats")
-//PASSED: test1("elephant")
-//PASSED: test1("dogs")
-//PASSED: test1("bengal tiger")
-//PASSED: test1("lion")
+//Starting ChromeDriver 2.25.426923 (0390b88869384d6eb0d5d09729679f934aab9eed) on port 48377
+//Only local connections are allowed.
+//Starting ChromeDriver 2.25.426923 (0390b88869384d6eb0d5d09729679f934aab9eed) on port 15839
+//Only local connections are allowed.
+//Starting ChromeDriver 2.25.426923 (0390b88869384d6eb0d5d09729679f934aab9eed) on port 22630
+//Only local connections are allowed.
+//Starting ChromeDriver 2.25.426923 (0390b88869384d6eb0d5d09729679f934aab9eed) on port 43857
+//Only local connections are allowed.
+//Starting ChromeDriver 2.25.426923 (0390b88869384d6eb0d5d09729679f934aab9eed) on port 25900
+//Only local connections are allowed.
 //PASSED: test1("seattle")
+//PASSED: test1("dr.j")
+//PASSED: test1("seahawks")
+//PASSED: test1("dogs")
+//PASSED: test1("lion")
+//PASSED: test1("bengal tiger")
+//PASSED: test1("apple")
 //PASSED: test1("sounders")
+//PASSED: test1("frogs")
+//PASSED: test1("magic mountain")
+//PASSED: test1("marshawn lynch")
+//PASSED: test1("cats")
+//PASSED: test1("beast mode")
+//PASSED: test1("disneyland")
+//PASSED: test1("pete carroll")
 //
 //===============================================
 //    Default test
-//    Tests run: 10, Failures: 0, Skips: 0
+//    Tests run: 15, Failures: 0, Skips: 0
 //===============================================
 //
 //
 //===============================================
 //Default suite
-//Total tests run: 10, Failures: 0, Skips: 0
+//Total tests run: 15, Failures: 0, Skips: 0
 //===============================================
 //
-//[TestNG] Time taken by org.testng.reporters.SuiteHTMLReporter@2c13da15: 101 ms
-//[TestNG] Time taken by org.testng.reporters.XMLReporter@4cc77c2e: 40 ms
-//[TestNG] Time taken by org.testng.reporters.jq.Main@3b192d32: 114 ms
+//[TestNG] Time taken by org.testng.reporters.SuiteHTMLReporter@2c13da15: 184 ms
+//[TestNG] Time taken by org.testng.reporters.XMLReporter@4cc77c2e: 135 ms
+//[TestNG] Time taken by org.testng.reporters.jq.Main@3b192d32: 217 ms
 //[TestNG] Time taken by [FailedReporter passed=0 failed=0 skipped=0]: 1 ms
-//[TestNG] Time taken by org.testng.reporters.EmailableReporter2@e73f9ac: 9 ms
-//[TestNG] Time taken by org.testng.reporters.JUnitReportReporter@383534aa: 9 ms
-
+//[TestNG] Time taken by org.testng.reporters.EmailableReporter2@e73f9ac: 20 ms
+//[TestNG] Time taken by org.testng.reporters.JUnitReportReporter@383534aa: 49 ms
