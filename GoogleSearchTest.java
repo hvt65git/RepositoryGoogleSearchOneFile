@@ -1,14 +1,12 @@
-package singlefileframework;
-
-import org.openqa.selenium.By;
-
-import com.google.common.base.Predicate;
+package sff_practice10_final_RTM;
 
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.firefox.FirefoxDriver;
-import org.openqa.selenium.support.ui.ExpectedCondition;
+import org.openqa.selenium.support.FindBy;
+import org.openqa.selenium.support.PageFactory;
+import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
@@ -16,151 +14,150 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-/***
- * 
- * @author focalpt - My Selenium and TestNG framework in a single file
- * 					 supports multithreaded testing when multiple test annotations 
- * 					 are used and when the dataprovider is used for a 
- * 					 single test annotation when parallel = true is set in
- *					 @DataProvider argument
- */
+import static sff_practice10_final_RTM.DriverType.FIREFOX;
+import static sff_practice10_final_RTM.DriverType.CHROME;
 
-interface Browser{
+interface Driver {
 	public WebDriver getWebDriver();
 }
 
-enum BrowserType implements Browser{
+enum DriverType implements Driver {
 	CHROME{
-		@Override
 		public WebDriver getWebDriver(){
-			System.setProperty("webdriver.chrome.driver", 
+			System.setProperty("webdriver.chrome.driver",
 					System.getProperty("user.dir") + "\\lib\\chromedriver.exe");
 			return new ChromeDriver();
 		}
 	},
 	FIREFOX{
-		@Override
 		public WebDriver getWebDriver(){
 			return new FirefoxDriver();
 		}
-	}
+	};
 }
 
-class WebDriverFactory{
-	//use ThreadLocal to associate WebDriver object with a thread 
-	private static ThreadLocal<WebDriver> tl;
-	
-	public WebDriverFactory(){
-		tl = new ThreadLocal<WebDriver>();
-		System.out.println("WebDriverFactory constructor called...");
-	}
+class DriverFactory {
+	private static final DriverType dt = CHROME;
+	private static ThreadLocal<WebDriver> tl = 
+			new ThreadLocal<WebDriver>();
 
-	public WebDriver initWebDriver(BrowserType bt) throws IllegalAccessException{
+	@BeforeMethod
+	public WebDriver createWebDriver() throws IllegalAccessException{
 		WebDriver driver = null;
-		switch(bt){
+
+		switch(dt){
 		case CHROME:
-			driver = BrowserType.CHROME.getWebDriver();
+			driver = CHROME.getWebDriver();
 			break;
 		case FIREFOX:
-			driver = BrowserType.FIREFOX.getWebDriver();
+			driver = FIREFOX.getWebDriver();
 			break;
 		default:
 			throw 
-			new IllegalAccessException("In initWebDriver. Error - Undefined BrowserType");
-		};
+			new IllegalAccessException("undefined driver type.");
+		}
+
 		setWebDriver(driver);
-		getWebDriver().manage().window().maximize();	
 		return getWebDriver();
+	}
+
+	public static WebDriver getWebDriver(){
+		return tl.get();
 	}
 
 	private void setWebDriver(WebDriver driver){
 		tl.set(driver);
 	}
 
-	public WebDriver getWebDriver(){
-		return tl.get();
-	}
-
-	protected void releaseWebDriver(){
+	@AfterMethod
+	public void releaseWebDriver(){
 		getWebDriver().quit();
 		tl.remove();
 	}
+
 }
 
-class SeleniumBase extends WebDriverFactory{
+class SeleniumBase extends DriverFactory {
+	protected long WAIT_TIMEOUT = 30; //secs
+	protected Object[][] getTestData(){
+		return new Object[][]{
+				{"seattle"},
+//				{"key arena"},
+//				{"antique road show"},
+//				{"seahawks"},{"seattle storm"},
+				{"mariners"}
+		};
+	}	
+}
 
-	public SeleniumBase(){
-		System.out.println("SeleniumBase constructor called...");
-		System.setProperty("log4j.configuration", "set") ;
-		System.setProperty("org.apache.commons.logging.Log","org.apache.commons.logging.impl.Jdk14Logger");
+class GoogleLoginPage {
+	private String URL = "http://google.com";
+	private long WAIT_TIMEOUT = 30; //secs
+
+	public GoogleLoginPage() throws Exception{
+		WebDriver driver = DriverFactory.getWebDriver();
+		PageFactory.initElements(driver, this); //BUG WAS HERE! had WAIT_TIMEOUT instead of this!!
+		driver.get(URL);
+		driver.manage().window().maximize();
+	}
+	
+	@FindBy(xpath = "//*[@name='q']")
+	private WebElement searchBox;
+	
+//	@FindBy(name = "q")
+//	private WebElement searchBox;
+
+	public void searchGoogle(String term) throws Exception {
+		WebDriver driver = DriverFactory.getWebDriver();
+
+		try{
+			//wait for search box to appear - by proxy
+			new WebDriverWait(driver, WAIT_TIMEOUT)
+			.until(ExpectedConditions.visibilityOf(searchBox));
+		}
+		catch(Exception e){
+			System.out.println("searchGoogle exception - " + e.getMessage());
+		}
+
+		//send the search text
+		searchBox.sendKeys(term);
+		searchBox.submit();
 	}
 }
+
 
 public class GoogleSearchTest extends SeleniumBase {
-	private static final long timeout = 10; //secs
-	private static final String URL = "http://google.com";
 
-	public GoogleSearchTest(){
-		System.out.println("GoogleSearchTest constructor called....");
-	}
+	private void googleSearchTest(String term){
 
-	@BeforeMethod
-	public void init(){
-		try{
-			initWebDriver(BrowserType.CHROME);
-			getWebDriver().get(URL);
-			getWebDriver().manage().window().maximize();
+		try {
+			//arrange - create test object
+			GoogleLoginPage glp = new GoogleLoginPage();
+
+			//act - invoke search method
+			glp.searchGoogle(term);
+
+			//assert after search results page is displayed
+			Assert.assertTrue(
+					new WebDriverWait(getWebDriver(), WAIT_TIMEOUT)
+					.until(ExpectedConditions.titleContains(term))
+					);
 		}
-		catch(Exception e){
-			System.out.println("The following error occurred during init(): " + e.getMessage());
-		}
-	}
+		catch(Exception e) {
+			System.out.println("Exception in googleSearchTest: " + e.getMessage());
+			Assert.assertTrue(false);
 
-	@AfterMethod
-	public void cleanup(){
-		releaseWebDriver();
-	}
-
-	//the test
-	public void executeGoogleSearchTest(final String term){
-		
-		try{
-			//find the search txt element - note WebElement is an interface
-			//lambda expression works fine here - good
-			WebElement txtbox = new WebDriverWait(getWebDriver(), timeout).until(
-					(WebDriver dr1) -> dr1.findElement(By.name("q")));
-			txtbox.sendKeys(term);
-			txtbox.submit();
-
-			//use ExpectedCondition anon inner class implementation - good
-			ExpectedCondition<Boolean> titleContainsTerm =	new ExpectedCondition<Boolean>(){ 
-				public Boolean apply(WebDriver d){
-					return d.getTitle().contains(term);
-				}
-			};
-			new WebDriverWait(getWebDriver(),timeout).until(titleContainsTerm);
-
-			//or we can use a Predicate implementation but we lose the return type
-			Predicate<WebDriver> titleContainsTerm2 = d-> d.getTitle().contains(term);
-			new WebDriverWait(getWebDriver(),timeout).until(titleContainsTerm2);
-
-		}
-		catch(Exception e){
-			System.out.println("The following error occurred: " + e.getMessage());
 		}
 	}
 
-	@Test(dataProvider="testData")
-	public void test1(String term){
-		executeGoogleSearchTest(term);
+	@Test(dataProvider = "testDataProvider")
+	public void test(String term){
+		googleSearchTest(term);
 	}
 
-	@DataProvider(parallel = true)
-	public Object[][] testData(){
-		return new Object[][]{
-				{"apple"},{"bengal tiger"},{"cats"},{"dogs"},{"dr.j"},
-				{"frogs"},{"lion"},{"seattle"},{"seahawks"},{"sounders"},
-				{"magic mountain"},{"disneyland"},{"marshawn lynch"},{"beast mode"},{"pete carroll"}
-		};
+	@DataProvider(parallel = false)
+	public Object[][] testDataProvider(){
+		return getTestData();
 	}
+
 }
